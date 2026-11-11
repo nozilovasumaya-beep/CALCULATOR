@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080f1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CALCULATOR">
+<link rel="manifest" href="manifest.json">
+<title>CALCULATOR</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+ background:#080f1e;color:white;
+ font-family:Arial,sans-serif;
+ min-height:100vh;display:flex;
+ justify-content:center;align-items:center;
+ padding:15px
+}
+.app{
+ width:100%;max-width:410px;
+ background:#101b30;border:1px solid #203554;
+ border-radius:28px;padding:22px;
+ box-shadow:0 15px 50px #0008
+}
+.header{text-align:center;margin-bottom:25px}
+.header h1{color:#168bff;font-size:25px;letter-spacing:3px}
+.header p{color:#7185a5;font-size:12px;margin-top:7px}
+.screen{
+ background:#080f1e;border-radius:18px;
+ padding:20px 15px;margin-bottom:20px;
+ min-height:125px;text-align:right;
+ display:flex;flex-direction:column;
+ justify-content:flex-end;overflow:hidden
+}
+#expression{color:#8192ad;font-size:18px;min-height:27px;word-break:break-all}
+#result{font-size:39px;font-weight:bold;margin-top:8px;overflow-wrap:anywhere}
+.buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+button{
+ border:0;border-radius:15px;height:65px;
+ background:#1c2b45;color:white;
+ font-size:21px;font-weight:bold;
+ cursor:pointer;transition:.15s
+}
+button:active{transform:scale(.94);background:#34547e}
+.operator{color:#168bff;background:#182e4c}
+.clear{background:#713347;color:white}
+.equal{background:#168bff;grid-column:span 1}
+.footer{text-align:center;color:#627795;font-size:11px;margin-top:22px}
+</style>
+</head>
+
+<body>
+<div class="app">
+ <div class="header">
+  <h1>CALCULATOR</h1>
+  <p>SMART SCIENTIFIC CALCULATOR</p>
+ </div>
+
+ <div class="screen">
+  <div id="expression"></div>
+  <div id="result">0</div>
+ </div>
+
+ <div class="buttons">
+  <button class="clear" onclick="clearAll()">AC</button>
+  <button class="operator" onclick="del()">DEL</button>
+  <button class="operator" onclick="add('%')">%</button>
+  <button class="operator" onclick="add('/')">÷</button>
+
+  <button onclick="add('7')">7</button>
+  <button onclick="add('8')">8</button>
+  <button onclick="add('9')">9</button>
+  <button class="operator" onclick="add('*')">×</button>
+
+  <button onclick="add('4')">4</button>
+  <button onclick="add('5')">5</button>
+  <button onclick="add('6')">6</button>
+  <button class="operator" onclick="add('-')">−</button>
+
+  <button onclick="add('1')">1</button>
+  <button onclick="add('2')">2</button>
+  <button onclick="add('3')">3</button>
+  <button class="operator" onclick="add('+')">+</button>
+
+  <button class="operator" onclick="add('(')">(</button>
+  <button onclick="add('0')">0</button>
+  <button onclick="add('.')">.</button>
+  <button class="operator" onclick="add(')')">)</button>
+
+  <button class="operator" onclick="sqrt()">√</button>
+  <button class="operator" onclick="square()">x²</button>
+  <button class="operator" onclick="add('Math.PI')">π</button>
+  <button class="equal" onclick="calculate()">=</button>
+ </div>
+
+ <div class="footer">CALCULATOR • PREMIUM VERSION</div>
+</div>
+
+<script>
+let expression = "";
+let finished = false;
+
+const result = document.getElementById("result");
+const screen = document.getElementById("expression");
+
+function add(value){
+ if(finished && /[0-9.(]/.test(value)){
+  expression="";
+ }
+ finished=false;
+ expression+=value;
+ screen.textContent=expression.replace(/\*/g,"×").replace(/\//g,"÷");
+ result.textContent=expression;
+}
+
+function clearAll(){
+ expression="";
+ screen.textContent="";
+ result.textContent="0";
+ finished=false;
+}
+
+function del(){
+ expression=expression.slice(0,-1);
+ screen.textContent=expression;
+ result.textContent=expression||"0";
+}
+
+function calculate(){
+ try{
+  if(!expression.trim())return;
+  if(!/^[0-9+\-*/().%MathPI ]+$/.test(expression.replace(/Math\.PI/g,"PI"))){
+   throw Error();
+  }
+  let safe=expression.replace(/Math\.PI/g,"Math.PI");
+  let answer=Function('"use strict";return ('+safe+')')();
+  if(typeof answer!=="number"||!Number.isFinite(answer))throw Error();
+  screen.textContent=expression.replace(/\*/g,"×").replace(/\//g,"÷")+" =";
+  expression=String(Number(answer.toPrecision(12)));
+  result.textContent=expression;
+  finished=true;
+ }catch(e){
+  result.textContent="Error";
+  expression="";
+  finished=false;
+ }
+}
+
+function sqrt(){
+ try{
+  let n=Number(expression);
+  if(!expression||!Number.isFinite(n)||n<0)throw Error();
+  screen.textContent="√("+expression+")";
+  expression=String(Math.sqrt(n));
+  result.textContent=expression;
+  finished=true;
+ }catch(e){result.textContent="Error";expression="";}
+}
+
+function square(){
+ try{
+  let n=Number(expression);
+  if(!expression||!Number.isFinite(n))throw Error();
+  screen.textContent="("+expression+")²";
+  expression=String(n*n);
+  result.textContent=expression;
+  finished=true;
+ }catch(e){result.textContent="Error";expression="";}
+}
+
+document.addEventListener("keydown",e=>{
+ if(/[0-9.+\-*/()%]/.test(e.key)&&e.key.length===1)add(e.key);
+ if(e.key==="Enter")calculate();
+ if(e.key==="Backspace")del();
+ if(e.key==="Escape")clearAll();
+});
+
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+ });
+}
+</script>
+</body>
+</html>
