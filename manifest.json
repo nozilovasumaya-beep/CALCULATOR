@@ -1,0 +1,10 @@
+{
+  "name": "CALCULATOR",
+  "short_name": "Calculator",
+  "description": "Modern Scientific Calculator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080f1e",
+  "theme_color": "#080f1e",
+  "orientation": "portrait"
+}
